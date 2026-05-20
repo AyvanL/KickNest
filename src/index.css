@@ -2,7 +2,43 @@
 @import "tailwindcss";
 
 @layer base {
+  html {
+    min-height: 100%;
+    background: #fff7f2;
+  }
+
   body {
-    @apply bg-background text-textMain;
+    @apply min-h-dvh bg-background text-textMain antialiased;
+    font-family: 'Nunito Sans', ui-sans-serif, system-ui, sans-serif;
+  }
+
+  #root {
+    min-height: 100dvh;
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+
+  button,
+  input {
+    font: inherit;
+  }
+}
+
+@layer utilities {
+  .page-gradient {
+    background:
+      radial-gradient(circle at top left, rgb(255 184 107 / 0.18), transparent 32rem),
+      radial-gradient(circle at top right, rgb(143 122 216 / 0.14), transparent 28rem),
+      #fff7f2;
+  }
+
+  .no-scrollbar {
+    scrollbar-width: none;
+  }
+
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
   }
 }

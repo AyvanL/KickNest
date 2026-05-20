@@ -33,8 +33,8 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-[100dvh] flex items-center justify-center bg-background px-4 py-8 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8 bg-white rounded-[2.5rem] shadow-2xl shadow-primary/10 p-8 sm:p-12 border border-borderSoft transition-all hover:shadow-primary/20">
+    <div className="min-h-dvh flex items-center justify-center page-gradient px-4 py-6 sm:px-6 lg:px-8">
+      <div className="max-w-md w-full space-y-7 bg-white/92 backdrop-blur-xl rounded-3xl shadow-2xl shadow-primary/10 p-6 min-[380px]:p-8 sm:p-10 border border-white/80">
         <div className="text-center">
           <div className="relative inline-block">
             <div className="absolute inset-0 bg-primary/20 blur-2xl rounded-full"></div>
@@ -44,7 +44,7 @@ const Login = () => {
           <p className="text-textSecondary text-base sm:text-lg font-medium">Ready to continue your journey?</p>
         </div>
 
-        <form onSubmit={handleLogin} className="mt-8 space-y-5">
+        <form onSubmit={handleLogin} className="mt-6 space-y-5">
           <div className="space-y-4">
             <div className="group relative">
               <label className="block text-sm font-bold text-textMain mb-1.5 ml-1 transition-colors group-focus-within:text-primary">Email Address</label>
@@ -76,7 +76,7 @@ const Login = () => {
                   type="password"
                   required
                   className="block w-full pl-11 pr-4 py-3.5 bg-background/50 border-2 border-borderSoft rounded-2xl text-textMain placeholder-textSecondary/50 focus:ring-0 focus:border-primary focus:bg-white transition-all outline-none text-base"
-                  placeholder="••••••••"
+                  placeholder="Password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                 />

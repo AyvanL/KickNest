@@ -6,16 +6,19 @@ export default {
   ],
   theme: {
     extend: {
+      fontFamily: {
+        sans: ['Nunito Sans', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+      },
       colors: {
-        primary: "#FF8FA3",
-        lavender: "#B9A7E5",
-        peach: "#FFD6B3",
+        primary: "#F36F8F",
+        lavender: "#8F7AD8",
+        peach: "#FFB86B",
         yellowSoft: "#FFC96B",
-        mint: "#BDE9D3",
-        background: "#FFF9F5",
-        textMain: "#4A4A4A",
-        textSecondary: "#7A7A7A",
-        borderSoft: "#F2E9E4",
+        mint: "#6FD2A7",
+        background: "#FFF7F2",
+        textMain: "#2F2933",
+        textSecondary: "#776D78",
+        borderSoft: "#EFE1DC",
       },
       animation: {
         'spin-slow': 'spin 8s linear infinite',
