@@ -1,8 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../services/supabase';
 import toast from 'react-hot-toast';
-import { HiOutlineMail, HiCalendar, HiHeart, HiArrowLeft, HiLogout, HiPencil, HiCheck, HiX } from 'react-icons/hi';
-import { Link } from 'react-router-dom';
+import { HiOutlineMail, HiCalendar, HiHeart, HiLogout, HiPencil, HiCheck, HiX, HiSparkles } from 'react-icons/hi';
 
 const Profile = () => {
   const [profile, setProfile] = useState(null);
@@ -63,72 +62,85 @@ const Profile = () => {
 
   if (loading) return null;
 
+  const initials = profile?.full_name
+    ?.split(' ')
+    .filter(Boolean)
+    .slice(0, 2)
+    .map(name => name[0])
+    .join('')
+    .toUpperCase() || 'U';
+
   return (
     <>
       <div className={`min-h-screen page-gradient pb-28 sm:pb-32 transition-opacity duration-200 ${isEditing ? 'opacity-0 pointer-events-none' : ''}`}>
-        <header className="bg-white/80 backdrop-blur-xl border-b border-borderSoft/80 pt-10 sm:pt-12 pb-7 sm:pb-8 px-4 sm:px-6 relative">
-        <Link to="/" className="absolute top-5 left-4 sm:top-6 sm:left-6 text-textSecondary hover:text-primary">
-          <HiArrowLeft className="w-6 h-6" />
-        </Link>
-        <div className="max-w-5xl mx-auto text-center">
-          <div className="w-24 h-24 bg-primary/20 rounded-full mx-auto mb-4 flex items-center justify-center text-primary text-4xl font-black">
-            {profile?.full_name?.charAt(0) || 'U'}
+      <main className="max-w-3xl mx-auto px-4 sm:px-6 pt-6 sm:pt-8 py-5 sm:py-7 space-y-5">
+        <section className="relative overflow-hidden rounded-3xl border border-white/80 bg-white/90 p-5 sm:p-7 shadow-2xl shadow-primary/10">
+          <div className="absolute right-0 top-0 h-36 w-36 translate-x-10 -translate-y-10 rounded-full bg-primary/10 blur-2xl"></div>
+          <div className="relative flex items-center gap-4">
+            <div className="flex items-center gap-4">
+              <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-3xl bg-primary text-3xl font-black text-white shadow-xl shadow-primary/25">
+                {initials}
+              </div>
+              <div className="min-w-0">
+                <div className="mb-1 flex items-center gap-2 text-xs font-black uppercase tracking-[0.18em] text-primary">
+                  <HiSparkles className="h-4 w-4" />
+                  Profile
+                </div>
+                <h2 className="truncate text-3xl font-black tracking-tight text-textMain">{profile?.full_name || 'KickNest User'}</h2>
+                <p className="font-bold text-textSecondary">Mom-to-be</p>
+              </div>
+            </div>
           </div>
-          <h2 className="text-3xl font-black text-textMain tracking-tight">{profile?.full_name || 'KickNest User'}</h2>
-          <p className="text-textSecondary font-medium">Mom-to-be</p>
-        </div>
-      </header>
+        </section>
 
-      <main className="max-w-2xl mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-4">
-        <div className="bg-white/90 p-4 sm:p-6 rounded-2xl border border-borderSoft flex items-center justify-between gap-4 shadow-lg shadow-primary/5">
-          <div className="flex items-center gap-4 flex-1">
-            <div className="w-12 h-12 bg-peach/20 rounded-2xl flex items-center justify-center text-peach">
+        <section className="grid grid-cols-1 min-[460px]:grid-cols-2 gap-3 sm:gap-4">
+          <div className="bg-white/90 p-5 rounded-2xl border border-borderSoft shadow-lg shadow-primary/5">
+            <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-peach/20 text-peach">
               <HiCalendar className="w-6 h-6" />
             </div>
-            <div className="flex-1">
-              <p className="text-xs font-bold text-textSecondary uppercase tracking-widest">Pregnancy Stage</p>
-              <p className="text-lg font-black text-textMain">{profile?.weeks_pregnant} Weeks</p>
-            </div>
+            <p className="text-xs font-black text-textSecondary uppercase tracking-[0.12em]">Pregnancy Stage</p>
+            <p className="mt-1 text-2xl font-black text-textMain">{profile?.weeks_pregnant} Weeks</p>
           </div>
-        </div>
 
-        <div className="bg-white/90 p-4 sm:p-6 rounded-2xl border border-borderSoft flex items-center justify-between gap-4 shadow-lg shadow-primary/5">
-          <div className="flex items-center gap-4 flex-1">
-            <div className="w-12 h-12 bg-lavender/20 rounded-2xl flex items-center justify-center text-lavender">
+          <div className="bg-white/90 p-5 rounded-2xl border border-borderSoft shadow-lg shadow-primary/5">
+            <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-lavender/20 text-lavender">
               <HiHeart className="w-6 h-6" />
             </div>
-            <div className="flex-1">
-              <p className="text-xs font-bold text-textSecondary uppercase tracking-widest">Baby's Name</p>
-              <p className="text-lg font-black text-textMain">{profile?.baby_name || 'Not set yet'}</p>
-            </div>
+            <p className="text-xs font-black text-textSecondary uppercase tracking-[0.12em]">Baby's Name</p>
+            <p className="mt-1 truncate text-2xl font-black text-textMain">{profile?.baby_name || 'Not set yet'}</p>
           </div>
-        </div>
+        </section>
 
-        <div className="bg-white/90 p-4 sm:p-6 rounded-2xl border border-borderSoft flex items-center gap-4 shadow-lg shadow-primary/5">
-          <div className="w-12 h-12 bg-mint/20 rounded-2xl flex items-center justify-center text-mint">
+        <section className="bg-white/90 p-5 sm:p-6 rounded-2xl border border-borderSoft shadow-lg shadow-primary/5">
+          <div className="flex items-center gap-4">
+          <div className="w-12 h-12 shrink-0 bg-mint/20 rounded-2xl flex items-center justify-center text-mint">
             <HiOutlineMail className="w-6 h-6" />
           </div>
-          <div>
-            <p className="text-xs font-bold text-textSecondary uppercase tracking-widest">Account Status</p>
+          <div className="min-w-0">
+            <p className="text-xs font-black text-textSecondary uppercase tracking-[0.12em]">Account Status</p>
             <p className="text-lg font-black text-textMain">Active Member</p>
+            <p className="text-sm font-bold text-textSecondary">Your KickNest profile is ready for tracking.</p>
           </div>
         </div>
+        </section>
 
-        <button
-          onClick={() => setIsEditing(true)}
-          className="w-full flex items-center justify-center gap-2 rounded-2xl border border-borderSoft bg-white/90 px-4 py-3 text-sm font-bold text-textSecondary transition-all hover:border-primary/30 hover:text-primary active:scale-95"
-        >
-          <HiPencil className="w-4 h-4" />
-          Edit Profile
-        </button>
+        <section className="rounded-3xl border border-white/80 bg-white/80 p-3 shadow-xl shadow-primary/5 grid gap-3 sm:grid-cols-2">
+          <button
+            onClick={() => setIsEditing(true)}
+            className="w-full flex min-h-14 items-center justify-center gap-2 rounded-2xl bg-primary px-5 py-4 text-sm font-black text-white shadow-lg shadow-primary/25 transition-all hover:bg-primary/90 active:scale-[0.98]"
+          >
+            <HiPencil className="w-5 h-5" />
+            Edit Profile
+          </button>
 
-        <button
-          onClick={handleLogout}
-          className="w-full flex items-center justify-center gap-2 rounded-2xl border border-red-300 bg-white/90 px-4 py-3 text-sm font-bold text-red-600 transition-all hover:border-red-600 hover:bg-red-50 active:scale-95"
-        >
-          <HiLogout className="w-4 h-4" />
-          Log out
-        </button>
+          <button
+            onClick={handleLogout}
+            className="w-full flex min-h-14 items-center justify-center gap-2 rounded-2xl border border-red-200 bg-red-50 px-5 py-4 text-sm font-black text-red-600 transition-all hover:border-red-300 hover:bg-red-100 active:scale-[0.98]"
+          >
+            <HiLogout className="w-5 h-5" />
+            Log out
+          </button>
+        </section>
       </main>
       </div>
 

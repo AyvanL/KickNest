@@ -3,12 +3,14 @@ import { Link, useNavigate } from 'react-router-dom';
 import { supabase } from '../services/supabase';
 import logo from '../assets/KickNest_Logo.png';
 import toast from 'react-hot-toast';
-import { HiMail, HiLockClosed, HiUserAdd } from 'react-icons/hi';
+import { HiMail, HiLockClosed, HiUserAdd, HiEye, HiEyeOff } from 'react-icons/hi';
 
 const Signup = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
@@ -30,7 +32,7 @@ const Signup = () => {
       if (error) throw error;
       
       toast.success('Account created! Please verify your email.');
-      navigate('/login');
+      navigate('/login', { state: { email: email.trim(), password } });
     } catch (error) {
       toast.error(error.message);
     } finally {
@@ -76,13 +78,20 @@ const Signup = () => {
                   <HiLockClosed className="h-5 w-5" />
                 </div>
                 <input
-                  type="password"
+                  type={showPassword ? "text" : "password"}
                   required
-                  className="block w-full pl-11 pr-4 py-3.5 bg-background/50 border-2 border-borderSoft rounded-2xl text-textMain placeholder-textSecondary/50 focus:ring-0 focus:border-primary focus:bg-white transition-all outline-none text-base"
+                  className="block w-full pl-11 pr-12 py-3.5 bg-background/50 border-2 border-borderSoft rounded-2xl text-textMain placeholder-textSecondary/50 focus:ring-0 focus:border-primary focus:bg-white transition-all outline-none text-base"
                   placeholder="Password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute inset-y-0 right-0 pr-4 flex items-center text-textSecondary hover:text-primary transition-colors"
+                >
+                  {showPassword ? <HiEyeOff className="h-5 w-5" /> : <HiEye className="h-5 w-5" />}
+                </button>
               </div>
             </div>
 
@@ -93,13 +102,20 @@ const Signup = () => {
                   <HiLockClosed className="h-5 w-5" />
                 </div>
                 <input
-                  type="password"
+                  type={showConfirmPassword ? "text" : "password"}
                   required
-                  className="block w-full pl-11 pr-4 py-3.5 bg-background/50 border-2 border-borderSoft rounded-2xl text-textMain placeholder-textSecondary/50 focus:ring-0 focus:border-primary focus:bg-white transition-all outline-none text-base"
+                  className="block w-full pl-11 pr-12 py-3.5 bg-background/50 border-2 border-borderSoft rounded-2xl text-textMain placeholder-textSecondary/50 focus:ring-0 focus:border-primary focus:bg-white transition-all outline-none text-base"
                   placeholder="Password"
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  className="absolute inset-y-0 right-0 pr-4 flex items-center text-textSecondary hover:text-primary transition-colors"
+                >
+                  {showConfirmPassword ? <HiEyeOff className="h-5 w-5" /> : <HiEye className="h-5 w-5" />}
+                </button>
               </div>
             </div>
           </div>

@@ -1,13 +1,15 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from '../services/supabase';
 import logo from '../assets/KickNest_Logo.png';
 import toast from 'react-hot-toast';
-import { HiMail, HiLockClosed, HiArrowRight } from 'react-icons/hi';
+import { HiMail, HiLockClosed, HiArrowRight, HiEye, HiEyeOff } from 'react-icons/hi';
 
 const Login = () => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const location = useLocation();
+  const [email, setEmail] = useState(location.state?.email || '');
+  const [password, setPassword] = useState(location.state?.password || '');
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
@@ -64,22 +66,29 @@ const Login = () => {
             </div>
 
             <div className="group relative">
-              <div className="flex justify-between items-center mb-1.5 ml-1">
-                <label className="block text-sm font-bold text-textMain transition-colors group-focus-within:text-primary">Password</label>
-                <button type="button" className="text-xs font-bold text-primary hover:text-opacity-80 transition-colors">Forgot?</button>
-              </div>
+              <label className="block text-sm font-bold text-textMain mb-1.5 ml-1 transition-colors group-focus-within:text-primary">Password</label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-textSecondary group-focus-within:text-primary transition-colors">
                   <HiLockClosed className="h-5 w-5" />
                 </div>
                 <input
-                  type="password"
+                  type={showPassword ? "text" : "password"}
                   required
-                  className="block w-full pl-11 pr-4 py-3.5 bg-background/50 border-2 border-borderSoft rounded-2xl text-textMain placeholder-textSecondary/50 focus:ring-0 focus:border-primary focus:bg-white transition-all outline-none text-base"
+                  className="block w-full pl-11 pr-12 py-3.5 bg-background/50 border-2 border-borderSoft rounded-2xl text-textMain placeholder-textSecondary/50 focus:ring-0 focus:border-primary focus:bg-white transition-all outline-none text-base"
                   placeholder="Password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute inset-y-0 right-0 pr-4 flex items-center text-textSecondary hover:text-primary transition-colors"
+                >
+                  {showPassword ? <HiEyeOff className="h-5 w-5" /> : <HiEye className="h-5 w-5" />}
+                </button>
+              </div>
+              <div className="flex justify-end mt-2">
+                <button type="button" className="text-xs font-bold text-primary hover:text-opacity-80 transition-colors">Forgot password?</button>
               </div>
             </div>
           </div>

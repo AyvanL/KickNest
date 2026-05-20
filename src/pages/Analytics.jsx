@@ -6,16 +6,18 @@ import {
 } from 'recharts';
 import { 
   HiChartBar, HiTrendingUp, HiClock, HiLightBulb, 
-  HiChevronRight, HiExclamationCircle, HiSparkles 
+  HiChevronRight, HiExclamationCircle, HiSparkles, HiCalendar, HiX
 } from 'react-icons/hi';
 import { 
   startOfWeek, subWeeks, format, startOfDay, endOfDay, 
-  parseISO, eachDayOfInterval, isSameDay, differenceInMinutes 
+  parseISO, eachDayOfInterval, isSameDay, differenceInMinutes,
+  startOfMonth, endOfMonth
 } from 'date-fns';
 
 const Analytics = () => {
   const [loading, setLoading] = useState(true);
   const [kickData, setKickData] = useState([]);
+  const [selectedDay, setSelectedDay] = useState(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -23,13 +25,13 @@ const Analytics = () => {
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) return;
 
-        // Fetch last 14 days of kicks for comprehensive analytics
-        const twoWeeksAgo = startOfDay(subWeeks(new Date(), 2)).toISOString();
+        // Fetch enough history for weekly comparison and the current-month calendar.
+        const fetchStart = startOfDay(subWeeks(startOfMonth(new Date()), 1)).toISOString();
         const { data: kicks } = await supabase
           .from('kicks')
           .select('created_at')
           .eq('user_id', user.id)
-          .gte('created_at', twoWeeksAgo)
+          .gte('created_at', fetchStart)
           .order('created_at', { ascending: true });
 
         setKickData(kicks || []);
@@ -113,13 +115,37 @@ const Analytics = () => {
       ? Math.round(((weeklyAvg - lastWeekAvg) / lastWeekAvg) * 100) 
       : 0;
 
+    const monthStart = startOfMonth(now);
+    const monthEnd = endOfMonth(now);
+    const calendarDays = eachDayOfInterval({ start: monthStart, end: monthEnd });
+    const leadingBlanks = Array.from({ length: monthStart.getDay() }, (_, index) => ({
+      key: `blank-${index}`,
+      empty: true,
+    }));
+    const kickCalendar = [
+      ...leadingBlanks,
+      ...calendarDays.map(day => {
+        const dayKicks = kickData.filter(k => isSameDay(parseISO(k.created_at), day));
+        return {
+          key: day.toISOString(),
+          date: day,
+          count: dayKicks.length,
+          times: dayKicks.map(k => format(parseISO(k.created_at), 'h:mm a')),
+          isToday: isSameDay(day, today),
+        };
+      }),
+    ];
+
     return { 
       todayKicks, weeklyAvg, peakTimeDisplay, pattern: 'Stable',
       weeklyChartData, 
       activeHoursData: timeBlocks.map(b => ({ name: b.name, kicks: b.kicks })),
+      mostActiveBlock: timeBlocks.reduce((best, block) => block.kicks > best.kicks ? block : best, timeBlocks[0]).name,
       avgInterval,
       lastWeekAvg,
-      percentChange
+      percentChange,
+      monthLabel: format(now, 'MMMM yyyy'),
+      kickCalendar
     };
   }, [kickData]);
 
@@ -147,7 +173,7 @@ const Analytics = () => {
   return (
     <div className="min-h-screen page-gradient pb-28 sm:pb-32 font-sans">
       <header className="bg-white/80 backdrop-blur-xl border-b border-borderSoft/80 pt-10 sm:pt-14 pb-6 sm:pb-8 px-4 sm:px-6">
-        <div className="max-w-5xl mx-auto">
+        <div className="max-w-5xl mx-auto flex flex-col items-center text-center">
           <div className="flex items-center gap-2 text-primary mb-2">
             <HiChartBar className="w-5 h-5" />
             <span className="font-black text-xs uppercase tracking-[0.18em]">Live Dashboard</span>
@@ -188,19 +214,19 @@ const Analytics = () => {
           <div className="h-56 sm:h-64 w-full">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={processedData.weeklyChartData}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#F2E9E4" />
-                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: '#7A7A7A', fontSize: 12, fontWeight: 'bold'}} dy={10} />
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#F0E3DE" />
+                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: '#7D727B', fontSize: 12, fontWeight: 'bold'}} dy={10} />
                 <YAxis hide />
                 <Tooltip 
-                  contentStyle={{borderRadius: '16px', border: 'none', boxShadow: '0 10px 15px -3px rgba(243,111,143,0.12)'}}
-                  itemStyle={{color: '#FF8FA3', fontWeight: 'bold'}}
+                  contentStyle={{borderRadius: '16px', border: 'none', boxShadow: '0 10px 15px -3px rgba(233,107,134,0.12)'}}
+                  itemStyle={{color: '#E96B86', fontWeight: 'bold'}}
                 />
                 <Line 
                   type="monotone" 
                   dataKey="kicks" 
-                  stroke="#FF8FA3" 
+                  stroke="#E96B86" 
                   strokeWidth={4} 
-                  dot={{ r: 6, fill: "#FF8FA3", strokeWidth: 0 }} 
+                  dot={{ r: 6, fill: "#E96B86", strokeWidth: 0 }} 
                   activeDot={{ r: 8, strokeWidth: 0 }}
                 />
               </LineChart>
@@ -224,17 +250,17 @@ const Analytics = () => {
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={processedData.activeHoursData} layout="vertical" margin={{ left: 8, right: 12 }}>
                 <XAxis type="number" hide />
-                <YAxis dataKey="name" type="category" axisLine={false} tickLine={false} tick={{fill: '#4A4A4A', fontSize: 13, fontWeight: 'black'}} />
+                <YAxis dataKey="name" type="category" axisLine={false} tickLine={false} tick={{fill: '#332A35', fontSize: 13, fontWeight: 'black'}} />
                 <Tooltip cursor={{fill: 'transparent'}} />
                 <Bar dataKey="kicks" radius={[0, 10, 10, 0]}>
                   {processedData.activeHoursData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={index >= 2 ? '#FF8FA3' : '#B9A7E5'} />
+                    <Cell key={`cell-${index}`} fill={index >= 2 ? '#E96B86' : '#9B86D9'} />
                   ))}
                 </Bar>
               </BarChart>
             </ResponsiveContainer>
           </div>
-          <p className="text-sm font-bold text-textSecondary text-center">Baby is most active in the {processedData.activeHoursData.sort((a,b) => b.kicks - a.kicks)[0].name.toLowerCase()}.</p>
+          <p className="text-sm font-bold text-textSecondary text-center">Baby is most active in the {processedData.mostActiveBlock.toLowerCase()}.</p>
         </section>
 
         {/* 5. Kick Interval Analytics */}
@@ -306,7 +332,98 @@ const Analytics = () => {
           </div>
         </section>
 
+        {/* 9. Kick Calendar */}
+        <section className="bg-white/90 p-4 sm:p-6 lg:p-8 rounded-2xl border border-borderSoft shadow-xl shadow-primary/5 space-y-5">
+          <div className="flex items-center justify-between gap-4">
+            <div>
+              <div className="flex items-center gap-2 text-primary">
+                <HiCalendar className="w-5 h-5" />
+                <span className="text-xs font-black uppercase tracking-[0.18em]">Kick Calendar</span>
+              </div>
+              <h3 className="text-2xl font-black text-textMain tracking-tight mt-1">{processedData.monthLabel}</h3>
+            </div>
+            <div className="rounded-2xl bg-primary/10 px-3 py-2 text-xs font-black text-primary">
+              {kickData.length} kicks
+            </div>
+          </div>
+
+          <div className="grid grid-cols-7 gap-1.5 sm:gap-2">
+            {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
+              <div key={day} className="py-2 text-center text-[10px] font-black uppercase tracking-[0.08em] text-textSecondary">
+                {day}
+              </div>
+            ))}
+
+            {processedData.kickCalendar.map(day => (
+              day.empty ? (
+                <div key={day.key} className="aspect-square rounded-2xl" />
+              ) : (
+                <button
+                  key={day.key}
+                  type="button"
+                  onClick={() => setSelectedDay(day)}
+                  className={`relative aspect-square rounded-2xl border text-sm font-black transition-all active:scale-95 ${
+                    day.isToday
+                      ? 'border-primary bg-primary text-white shadow-lg shadow-primary/20'
+                      : day.count
+                        ? 'border-primary/30 bg-primary/10 text-textMain hover:border-primary'
+                        : 'border-borderSoft bg-background/70 text-textSecondary hover:border-primary/30'
+                  }`}
+                  aria-label={`${format(day.date, 'MMMM d')}, ${day.count} kicks`}
+                >
+                  <span>{format(day.date, 'd')}</span>
+                  {day.count > 0 && (
+                    <span className={`absolute bottom-2 left-1/2 h-1.5 w-1.5 -translate-x-1/2 rounded-full ${day.isToday ? 'bg-white' : 'bg-primary'}`} />
+                  )}
+                </button>
+              )
+            ))}
+          </div>
+
+          <div className="flex items-center gap-2 rounded-2xl bg-background/70 p-3 text-xs font-bold text-textSecondary">
+            <span className="h-2 w-2 rounded-full bg-primary"></span>
+            Days with a dot have recorded kicks. Tap a day to view times.
+          </div>
+        </section>
+
       </main>
+
+      {selectedDay && (
+        <div className="fixed inset-0 z-[100] flex items-end justify-center bg-black/45 p-4 backdrop-blur-sm sm:items-center">
+          <div className="w-full max-w-md rounded-3xl border border-white/80 bg-white p-5 shadow-2xl">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <p className="text-xs font-black uppercase tracking-[0.18em] text-primary">Kick Times</p>
+                <h3 className="mt-1 text-2xl font-black text-textMain">{format(selectedDay.date, 'MMMM d, yyyy')}</h3>
+                <p className="text-sm font-bold text-textSecondary">{selectedDay.count} recorded {selectedDay.count === 1 ? 'kick' : 'kicks'}</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setSelectedDay(null)}
+                className="rounded-2xl border border-borderSoft p-2 text-textSecondary transition-colors hover:text-primary"
+                aria-label="Close kick times"
+              >
+                <HiX className="h-5 w-5" />
+              </button>
+            </div>
+
+            <div className="mt-5 max-h-72 space-y-2 overflow-y-auto pr-1">
+              {selectedDay.times.length > 0 ? (
+                selectedDay.times.map((time, index) => (
+                  <div key={`${time}-${index}`} className="flex items-center justify-between rounded-2xl bg-background/80 px-4 py-3">
+                    <span className="text-sm font-bold text-textSecondary">Kick {index + 1}</span>
+                    <span className="text-base font-black text-textMain">{time}</span>
+                  </div>
+                ))
+              ) : (
+                <div className="rounded-2xl bg-background/80 px-4 py-6 text-center text-sm font-bold text-textSecondary">
+                  No kicks were recorded on this day.
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

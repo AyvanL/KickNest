@@ -38,6 +38,10 @@ const SplashScreen = ({ onFinish }) => {
             </h1>
             <div className="h-1 w-0 bg-primary mx-auto rounded-full mt-2 animate-expand"></div>
           </div>
+
+          <p className="text-xs font-black uppercase tracking-[0.22em] text-textSecondary/70">
+            Developed by AyTech 2026.
+          </p>
         </div>
       </div>
     </div>

@@ -4,7 +4,7 @@
 @layer base {
   html {
     min-height: 100%;
-    background: #fff7f2;
+    background: #fff8f3;
   }
 
   body {
@@ -29,9 +29,10 @@
 @layer utilities {
   .page-gradient {
     background:
-      radial-gradient(circle at top left, rgb(255 184 107 / 0.18), transparent 32rem),
-      radial-gradient(circle at top right, rgb(143 122 216 / 0.14), transparent 28rem),
-      #fff7f2;
+      radial-gradient(circle at top left, rgb(246 179 127 / 0.18), transparent 32rem),
+      radial-gradient(circle at top right, rgb(155 134 217 / 0.13), transparent 28rem),
+      radial-gradient(circle at 50% 100%, rgb(123 200 164 / 0.10), transparent 28rem),
+      #fff8f3;
   }
 
   .no-scrollbar {

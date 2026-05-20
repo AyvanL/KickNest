@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from 'react'
 import { supabase } from '../services/supabase'
 import toast from 'react-hot-toast'
-import { HiHeart, HiSparkles, HiRefresh, HiLogout } from 'react-icons/hi'
+import { HiHeart, HiSparkles, HiRefresh } from 'react-icons/hi'
 import { differenceInWeeks, startOfDay, endOfDay } from 'date-fns'
 import '../App.css'
 
@@ -61,12 +61,6 @@ function Home() {
     return 'Good Evening';
   }, []);
 
-  const handleLogout = async () => {
-    const { error } = await supabase.auth.signOut();
-    if (error) toast.error(error.message);
-    else toast.success('Logged out successfully');
-  };
-
   const handleRecordKick = async () => {
     if (recording) return;
     setRecording(true);
@@ -89,9 +83,9 @@ function Home() {
         duration: 2000,
         style: {
           borderRadius: '18px',
-          background: '#FFF9F5',
-          color: '#4A4A4A',
-          border: '1px solid #FF8FA3',
+          background: '#FFF8F3',
+          color: '#332A35',
+          border: '1px solid #E96B86',
           fontWeight: 'bold'
         },
       });
@@ -147,21 +141,12 @@ function Home() {
 
   return (
     <div className="min-h-dvh flex flex-col page-gradient text-textMain overflow-hidden font-sans relative">
-      {/* Subtle Logout */}
-      <button
-        onClick={handleLogout}
-        className="absolute top-4 right-4 sm:top-6 sm:right-6 z-50 p-3 bg-white/80 backdrop-blur-md rounded-2xl border border-borderSoft text-textSecondary shadow-lg shadow-primary/5 hover:text-primary transition-all active:scale-95"
-        title="Logout"
-      >
-        <HiLogout className="w-5 h-5" />
-      </button>
-
       {/* Main Content Area */}
       <div className="grow flex flex-col items-center px-4 sm:px-6 pt-8 sm:pt-10 pb-28 sm:pb-32 overflow-y-auto no-scrollbar">
         <div className="w-full max-w-lg space-y-7 sm:space-y-9">
           
           {/* Enhanced Header Info */}
-          <div className="space-y-5 pr-12">
+          <div className="space-y-5">
             <div className="space-y-1">
               <div className="flex items-center gap-2 text-primary font-extrabold text-xs uppercase tracking-[0.18em]">
                 <HiHeart className="w-5 h-5" />
@@ -216,7 +201,7 @@ function Home() {
                   <button
                     onClick={handleRecordKick}
                     disabled={recording}
-                    className={`relative group flex items-center justify-center w-48 h-48 min-[380px]:w-56 min-[380px]:h-56 sm:w-64 sm:h-64 rounded-full bg-white shadow-[0_20px_50px_rgba(243,111,143,0.28)] transition-all active:scale-[0.96] disabled:opacity-80 border-[10px] sm:border-[12px] border-background ${
+                    className={`relative group flex items-center justify-center w-48 h-48 min-[380px]:w-56 min-[380px]:h-56 sm:w-64 sm:h-64 rounded-full bg-white shadow-[0_20px_50px_rgba(233,107,134,0.26)] transition-all active:scale-[0.96] disabled:opacity-80 border-[10px] sm:border-[12px] border-background ${
                       recording ? 'animate-pulse' : ''
                     }`}
                   >

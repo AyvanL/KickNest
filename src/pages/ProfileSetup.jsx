@@ -34,7 +34,7 @@ const ProfileSetup = () => {
       if (error) throw error;
       
       toast.success('Profile updated! Welcome to KickNest.');
-      navigate('/');
+      window.location.href = '/';
     } catch (error) {
       toast.error(error.message);
     } finally {
