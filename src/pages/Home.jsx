@@ -2,47 +2,102 @@ import { useState, useEffect, useMemo } from 'react'
 import { supabase } from '../services/supabase'
 import toast from 'react-hot-toast'
 import { HiHeart, HiSparkles, HiRefresh } from 'react-icons/hi'
-import { differenceInWeeks, startOfDay, endOfDay } from 'date-fns'
+import { differenceInWeeks, startOfDay, endOfDay, subWeeks, parseISO } from 'date-fns'
 import '../App.css'
 
 function Home() {
   const [profile, setProfile] = useState(null)
   const [loading, setLoading] = useState(true)
   const [kicksCount, setKicksCount] = useState(0)
+  const [stats, setStats] = useState({ avgDay: 0, mostActive: '--', trend: 'Stable' })
   const [recording, setRecording] = useState(false)
   const [lastKickId, setLastKickId] = useState(null)
 
   useEffect(() => {
-    const fetchData = async () => {
+    let channel;
+
+    const fetchProfile = async (userId) => {
+      const { data } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', userId)
+        .single();
+      if (data) setProfile(data);
+    };
+
+    const fetchKicksStats = async (userId) => {
+      const todayStart = startOfDay(new Date()).toISOString();
+      const todayEnd = endOfDay(new Date()).toISOString();
+      const sevenDaysAgo = startOfDay(subWeeks(new Date(), 1)).toISOString();
+
+      const { data: kicksData, error } = await supabase
+        .from('kicks')
+        .select('id, created_at')
+        .eq('user_id', userId)
+        .gte('created_at', sevenDaysAgo)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      
+      const todayKicks = kicksData?.filter(k => k.created_at >= todayStart && k.created_at <= todayEnd) || [];
+      setKicksCount(todayKicks.length);
+      if (todayKicks.length > 0) setLastKickId(todayKicks[0].id);
+      else setLastKickId(null);
+
+      if (kicksData && kicksData.length > 0) {
+        const avgDay = Math.round(kicksData.length / 7); 
+        
+        const hourCounts = {};
+        kicksData.forEach(k => {
+          const hour = parseISO(k.created_at).getHours();
+          hourCounts[hour] = (hourCounts[hour] || 0) + 1;
+        });
+        let peakHour = 0;
+        let maxCount = 0;
+        for (const [hour, count] of Object.entries(hourCounts)) {
+          if (count > maxCount) { maxCount = count; peakHour = parseInt(hour); }
+        }
+        const ampm = peakHour >= 12 ? 'PM' : 'AM';
+        const displayHour = peakHour % 12 || 12;
+
+        const prevWeekStart = startOfDay(subWeeks(new Date(), 2)).toISOString();
+        const { count: prevCount } = await supabase
+          .from('kicks')
+          .select('*', { count: 'exact', head: true })
+          .eq('user_id', userId)
+          .gte('created_at', prevWeekStart)
+          .lt('created_at', sevenDaysAgo);
+          
+        let trend = 'Stable';
+        if (prevCount !== null) {
+           if (kicksData.length > prevCount + 5) trend = 'Up ↑';
+           else if (kicksData.length < prevCount - 5) trend = 'Down ↓';
+        }
+
+        setStats({ avgDay, mostActive: `${displayHour} ${ampm}`, trend });
+      } else {
+        setStats({ avgDay: 0, mostActive: '--', trend: 'Stable' });
+      }
+    };
+
+    const init = async () => {
       try {
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) return;
 
-        // Fetch Profile
-        const { data: profileData, error: profileError } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', user.id)
-          .single();
+        await Promise.all([
+          fetchProfile(user.id),
+          fetchKicksStats(user.id)
+        ]);
 
-        if (profileError) throw profileError;
-        setProfile(profileData);
-
-        // Fetch Today's Kicks
-        const todayStart = startOfDay(new Date()).toISOString();
-        const todayEnd = endOfDay(new Date()).toISOString();
-
-        const { data: kicksData, error: kicksError } = await supabase
-          .from('kicks')
-          .select('id')
-          .eq('user_id', user.id)
-          .gte('created_at', todayStart)
-          .lte('created_at', todayEnd)
-          .order('created_at', { ascending: false });
-
-        if (kicksError) throw kicksError;
-        setKicksCount(kicksData?.length || 0);
-        if (kicksData?.length > 0) setLastKickId(kicksData[0].id);
+        channel = supabase
+          .channel('realtime-kicks')
+          .on(
+            'postgres_changes',
+            { event: '*', schema: 'public', table: 'kicks', filter: `user_id=eq.${user.id}` },
+            () => fetchKicksStats(user.id)
+          )
+          .subscribe();
 
       } catch (error) {
         console.error('Error fetching data:', error.message);
@@ -51,7 +106,11 @@ function Home() {
       }
     };
 
-    fetchData();
+    init();
+
+    return () => {
+      if (channel) supabase.removeChannel(channel);
+    };
   }, []);
 
   const greeting = useMemo(() => {
@@ -224,15 +283,15 @@ function Home() {
                 <div className="grid grid-cols-1 min-[380px]:grid-cols-3 gap-2.5 w-full pt-2">
                   <div className="bg-background/70 rounded-2xl p-3 border border-borderSoft/70 flex min-[380px]:flex-col items-center justify-between min-[380px]:justify-center gap-2">
                     <span className="text-[10px] font-bold text-textSecondary uppercase tracking-[0.08em]">Avg/day</span>
-                    <span className="text-sm font-black text-textMain">16 kicks</span>
+                    <span className="text-sm font-black text-textMain">{stats.avgDay} kicks</span>
                   </div>
                   <div className="bg-background/70 rounded-2xl p-3 border border-borderSoft/70 flex min-[380px]:flex-col items-center justify-between min-[380px]:justify-center gap-2">
                     <span className="text-[10px] font-bold text-textSecondary uppercase tracking-[0.08em]">Most Active</span>
-                    <span className="text-sm font-black text-textMain">8 PM</span>
+                    <span className="text-sm font-black text-textMain">{stats.mostActive}</span>
                   </div>
                   <div className="bg-background/70 rounded-2xl p-3 border border-borderSoft/70 flex min-[380px]:flex-col items-center justify-between min-[380px]:justify-center gap-2">
                     <span className="text-[10px] font-bold text-textSecondary uppercase tracking-[0.08em]">Weekly Trend</span>
-                    <span className="text-sm font-black text-textMain">Stable</span>
+                    <span className="text-sm font-black text-textMain">{stats.trend}</span>
                   </div>
                 </div>
               </div>
